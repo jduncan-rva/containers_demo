@@ -1,0 +1,117 @@
+:toc: left
+:icons:
+:iconsdir: http://people.redhat.com/~jduncan/images/icons
+:imagesdir: http://people.redhat.com/~jduncan/images
+:toc-title: Agenda
+:toclevels: 3
+:sectnums:
+:source-highlighter: prettify
+:docinfo1:
+
+= USCBP Container Workshop
+Jamie Duncan <jduncan@redhat.com>; Tariq Islam <tislam@redhat.com>
+
+== Container Key Concepts
+
+=== Presentation
+
+link:http://redhat.slides.com/jduncan/uscbp-201602/fullscreen[Link to presentation on slides.com]
+
+== Container ulimit and cgroup defaults
+
+As of RHEL Atomic Host 7.1.2, which rebased to docker 1.6.0, the following options are available
+
+=== Per-Container CGroup settings
+
+[quote,RHEL 7.1 Release Notes,https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/7.1_Release_Notes/chap-Red_Hat_Enterprise_Linux-7.1_Release_Notes-Linux_Containers_with_Docker_Format.html]
+____
+This release adds support for custom cgroups. Using the `--cgroup-parent flag`, you can pass a specific cgroup to run a container in. This allows you to create and manage cgroups on their own. You can define custom resources for those cgroups and put containers under a common parent group.This release adds support for custom cgroups. Using the --cgroup-parent flag, you can pass a specific cgroup to run a container in. This allows you to create and manage cgroups on their own. You can define custom resources for those cgroups and put containers under a common parent group.
+____
+
+=== Default ulimit Settings
+
+[quote,RHEL 7.1 Release Notes,https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/7.1_Release_Notes/chap-Red_Hat_Enterprise_Linux-7.1_Release_Notes-Linux_Containers_with_Docker_Format.html]
+____
+With this update, you can now specify the default ulimit settings for all containers, when configuring the Docker daemon. For example:
+
+`docker -d --default-ulimit nproc=1024:2048docker -d --default-ulimit nproc=1024:2048`
+
+This command sets a soft limit of 1024 and a hard limit of 2048 child processes for all containers. You can set this option multiple times for different ulimit values, for example:
+
+`--default-ulimit nproc=1024:2408 --default-ulimit nofile=100:200`
+
+These settings can be overwritten when creating a container as such:
+
+`docker run -d --ulimit nproc=2048:4096 httpd`
+____
+
+== Latest Version of RHEL Atomic Host
+
+=== Release Notes
+
+link:https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/7.2_Release_Notes/atomic_host_and_containers.html[RHEL 7.2 Atomic Host Release Notes]
+
+== Atomic Host Key Concepts
+
+[quote,RHEL Atomic Host 7 Getting Started Guide,https://access.redhat.com/documentation/en/red-hat-enterprise-linux-atomic-host/version-7/getting-started-guide/ ]
+____
+Red Hat Enterprise Linux Atomic host is a variation of Red Hat Enterprise Linux 7 optimized to run Linux containers in the Docker format. It has been designed to take advantage of the powerful technology available in Red Hat Enterprise Linux 7.
+
+Red Hat Enterprise Linux Atomic Host uses SELinux to provide strong safeguards in multi-tenant environments, and provides the ability to perform atomic upgrades and rollbacks, enabling quicker and easier maintenance with less downtime. Red Hat Enterprise Linux Atomic Host uses the same upstream projects delivered via the same RPM packaging as Red Hat Enterprise Linux 7.
+____
+
+=== Atomic Upgrades and Downgrades
+
+OSTree and rpm-OSTree - These projects provide atomic upgrades and the ability to roll back upgrades.
+
+=== docker and kubernetes Pre-installed
+
+designed to support modern Linux Containers from the outset
+
+=== SELinux enabled by default
+
+Enabled by default to provide complete multi-tenant security. You’ll also find Integrity Measurement Architecture (IMA), audit and libwrap available from systemd.
+
+=== Only Two Writeable Directories
+
+There are only two writable directories for local system configuration: /etc/ and /var/. The /usr/ directory is mounted read-only. Other directories are symlinks to a writable location. For example, the /home/ directory is a symlink to the /var/home/ directory.
+
+=== LVM Configured for Container Performance
+
+The default partitioning dedicates most of the available space for the containers, using direct LVM instead of the default loopback.
+
+== Kubernetes Key Concepts
+
+=== Master
+
+=== Node
+
+=== Pod
+
+=== Service
+
+=== Replication Controller
+
+== Kubernetes Labs
+
+=== Creating a Registry
+
+[IMPORTANT]
+Atomic Enterprise Platform, as well as OpenShift Enterprise, have an integrated Secure Registry component. Satellite 6 can also act as a container registry and integrate into workflows. For this demo we will be using a simple upstream registry from Docker Hub.
+
+==== Pull the Registry Base Image
+
+[source,bash]
+----
+-bash-4.2# docker pull registry:2
+...
+Status: Downloaded newer image for docker.io/registry:2
+----
+
+==== Create a kubernetes Pod for the registry
+
+[source,bash]
+.create registry-service.yaml
+----
+TODO
+----

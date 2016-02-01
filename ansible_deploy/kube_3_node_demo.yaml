@@ -1,0 +1,57 @@
+- hosts: kube-masters
+  remote_user: root
+  tasks:
+  - name: configure /etc/resolv.conf
+    template: src=templates/resolv_conf.j2 dest=/etc/resolv.conf
+  - name: configure /etc/hosts
+    template: src=templates/hosts_file.j2 dest=/etc/hosts
+  - name: configure /etc/etcd/etcd.conf for master
+    template: src=templates/etcd_conf_master.j2 dest=/etc/etcd/etcd.conf
+  - name: configure /etc/kubernetes/config for master
+    template: src=templates/kubernetes_config.j2 dest=/etc/kubernetes/config
+  - name: configure /etc/kubernetes/apiserver for master
+    template: src=templates/kubernetes_apiserver_master.j2 dest=/etc/kubernetes/apiserver
+  - name: restart and enable etcd on master
+    service: name=etcd state=restarted enabled=yes
+  - name: restart and enable kube-apiserver service on master
+    service: name=kube-apiserver state=restarted enabled=yes
+  - name: restart and enable kube-controller-manager service on master
+    service: name=kube-controller-manager state=restarted enabled=yes
+  - name: restart and enable kube-scheduler on master
+    service: name=kube-scheduler state=restarted enabled=yes
+  - name: get flannel-config.json on master
+    template: src=templates/flannel-config.json dest=/root/flannel-config.json
+  - name: set flannel config in etcd database on master
+    command: curl -L http://kube0.example.com:2379/v2/keys/coreos.com/network/config -XPUT --data-urlencode value@/root/flannel-config.json
+  - name: configure flannel
+    template: src=templates/sysconfig_flanneld.j2 dest=/etc/sysconfig/flanneld
+  - name: restart and enable flanneld
+    service: name=flanneld state=restarted enabled=yes
+
+- hosts: kube-nodes
+  remote_user: root
+  tasks:
+  - name: configure /etc/resolv.conf
+    template: src=templates/resolv_conf.j2 dest=/etc/resolv.conf
+  - name: configure /etc/hosts
+    template: src=templates/hosts_file.j2 dest=/etc/hosts
+  - name: configure /etc/kubernetes/config on node
+    template: src=templates/kubernetes_config.j2 dest=/etc/kubernetes/config
+  - name: configure /etc/kubernetes/kubelet on node
+    template: src=templates/kubernetes_kubelet_node.j2 dest=/etc/kubernetes/kubelet
+  - name: configure /etc/kubernets/proxy on node
+    template: src=templates/kubernetes_proxy_node.j2 dest=/etc/kubernetes/proxy
+  - name: restart and enable docker on node
+    service: name=docker state=restarted enabled=yes
+  - name: restart and enable kube-proxy on node
+    service: name=kube-proxy state=restarted enabled=yes
+  - name: restart and enable kubelet on node
+    service: name=kubelet state=restarted enabled=yes
+  - name: configure flannel
+    template: src=templates/sysconfig_flanneld.j2 dest=/etc/sysconfig/flanneld
+  - name: restart and enable flanneld
+    service: name=flanneld state=restarted enabled=yes
+
+
+
+
