@@ -103,15 +103,141 @@ Atomic Enterprise Platform, as well as OpenShift Enterprise, have an integrated 
 
 [source,bash]
 ----
--bash-4.2# docker pull registry:2
+-bash-4.2# docker pull registry:2 on each node
 ...
 Status: Downloaded newer image for docker.io/registry:2
 ----
 
+==== TLS Setup
+
+For the docker-registry application, if you want to move containers from one host to another, you have to use TLS. This requires a little set up on the kubernetes nodes as well as my laptop (if I want to push images from there as well). For this example, we'll be using a self-signed certificate.
+
+[source,bash]
+.create a self-signed certificate on your system
+----
+jduncan@dhcp-192-168-1-140 ~$ mkdir -p certs && openssl req \
+  -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
+  -x509 -days 365 -out certs/domain.crtmkdir -p certs && openssl req \
+  -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
+  -x509 -days 365 -out certs/domain.crt
+----
+
+[source,bash]
+.copy the certificate into /etc/docker/certs.d/kube1.example.com:5000/ca.crt on each host that will use this registry
+----
+$ sudo mkdir -p /etc/docker/certs.d/kube1.example.com:5000
+$ cp ~/certs/domain.crt /etc/docker/certs.d/kube1.example.com:5000/ca.crt
+----
+
+[source,bash]
+.restart the docker service so it will recognize the new certificate on each host that will use the registry
+----
+$ sudo systemctl restart docker.service
+----
+
+==== Kubernetes node Setup for TLS
+
+For this example we are going to use /var/certs on each host to present the certificates to the docker registry container. This could also be used with NFS, iSCSI or other solutions, but this is the most straightforward for this example.
+
+This deploy work has already been done by our Ansible playbook.
+
 ==== Create a kubernetes Pod for the registry
 
 [source,bash]
-.create registry-service.yaml
+.create registry-service.yaml on the master
 ----
-TODO
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: registry
+  name: registry-service
+  namespace: default
+spec:
+  ports: [
+    { "name": "web-registry",
+      "protocol": "TCP",
+      "port": 5000,
+      "targetPort": 5000
+    }
+  ]
+  selector:
+    name: registry
+  deprecatedPublicIPs:
+  - 192.168.122.211
+  - 192.168.122.212
 ----
+
+[source,bash]
+.create the registry service
+----
+--bash-4.2# kubectl create -f regsitry-service.yaml
+services/registry-service
+---
+
+[source,bash]
+.confirm it was created
+----
+-bash-4.2# kubectl get services
+NAME               LABELS                                    SELECTOR        IP(S)           PORT(S)
+kubernetes         component=apiserver,provider=kubernetes   <none>          10.254.0.1      443/TCP
+registry-service   name=registry                             name=registry   10.254.144.95   5000/TCP
+----
+
+[source,bash]
+.create registry-controller.yaml
+----
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: registry-rc
+  labels:
+    name: registry-rc
+spec:
+  replicas: 1
+  selector:
+    name: registry
+  template:
+    metadata:
+      labels:
+        name: registry
+    spec:
+      containers:
+      - name: registry
+        image: docker.io/registry:2
+        volumeMounts:
+        - mountPath: "/var/certs:z"
+          name: certdir
+        env:
+          - name: REGISTRY_HTTP_TLS_CERTIFICATE
+            value: /var/certs/domain.crt
+          - name: REGISTRY_HTTP_TLS_KEY
+            value: /var/certs/domain.key
+        ports:
+          - name: reg-port
+            containerPort: 5000
+      volumes:
+        - name: certdir
+          hostPath:
+            path: "/var/certs"
+----
+
+[source,bash]
+.create the registry replication controller
+----
+-bash-4.2# kubectl create -f registry-controller.yaml
+replicationcontrollers/registry-controller
+----
+
+[source,bash]
+.confirm the rc and pod has been created
+----
+-bash-4.2# kubectl get rc
+CONTROLLER            CONTAINER(S)   IMAGE(S)     SELECTOR        REPLICAS
+registry-controller   registry       registry:2   name=registry   1
+-bash-4.2# kubectl get pods
+NAME                        READY     STATUS    RESTARTS   AGE
+registry-controller-m4wwq   1/1       Running   0          4m
+----
+
+==== Access the Registry
