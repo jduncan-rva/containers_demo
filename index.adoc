@@ -156,7 +156,6 @@ The Ansible Playbooks, along with this Agenda in raw asciidoc, are available on 
 jduncan@dhcp-192-168-1-140 uscbp_containers$ ansible-playbook kube_3_node_demo.yaml
 ----
 
-[TIP]
 This will take a few minutes and produce a LOT of STDOUT. In the end, green and yellow is good, and red is bad. Any errors should be straight-forward.
 
 [IMPORTANT]

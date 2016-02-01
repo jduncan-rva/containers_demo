@@ -51,7 +51,13 @@
     template: src=templates/sysconfig_flanneld.j2 dest=/etc/sysconfig/flanneld
   - name: restart and enable flanneld
     service: name=flanneld state=restarted enabled=yes
-
-
-
-
+  - name: create the certificate directory for each node
+    file: path=/etc/docker/certs.d/kube1.example.com:5000 state=directory
+  - name: add the registry certificate for docker
+    template: src=/template/certs/domain.crt dest=/etc/docker/certs.d/kube1.example.com:5000/ca.crt
+  - name: create the certs directory to mount into the registry container
+    file: path=/var/certs path=directory
+  - name: add the registry cert to /var/certs
+    template: src=/template/certs/domain.crt dest=/var/certs/domain.crt
+  - name: add the registry key to /var/certs
+    template: src=src=/template/certs/domain.key dest=/var/certs/domain.key
