@@ -171,9 +171,9 @@ spec:
 [source,bash]
 .create the registry service
 ----
---bash-4.2# kubectl create -f regsitry-service.yaml
+-bash-4.2# kubectl create -f regsitry-service.yaml
 services/registry-service
----
+----
 
 [source,bash]
 .confirm it was created
