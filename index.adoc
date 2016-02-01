@@ -293,7 +293,6 @@ spec:
 .create the registry replication controller
 ----
 -bash-4.2# kubectl create -f registry-controller.yaml
-replicationcontrollers/registry-controller
 ----
 
 [source,bash]
