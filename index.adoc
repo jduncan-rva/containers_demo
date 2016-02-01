@@ -94,7 +94,75 @@ The default partitioning dedicates most of the available space for the container
 
 == Kubernetes Labs
 
-=== Creating a Registry
+=== Lab Topology
+We will be using 3 kvm virtual machines on my laptop for today's demonstrations.
+
+[.striped]
+|===
+|Server Name|IP|Notes|CPUS|RAM|Disk
+
+|laptop|192.168.122.1|Ansible Server/Hypervisor|8 Cores|16GB|256GB SSD
+
+|kube0.example.com|192.168.122.210|Kubernetes Master|2 VCPU|4GB|40GB
+
+|kube1.example.com|192.168.122.211|Kubernetes Node|2 VCPUs|4GB|40GB
+
+|kube2.example.com|192.168.122.212|Kubernetes Node|2 VCPUs|4GB|40GB
+
+|===
+
+=== Kubernetes Cluster Systems
+
+All three nodes are RHEL Atomic Hosts, registered and updated with the latest release of the Operating System.
+
+=== Deploying Kubernetes with Ansible
+
+The Atomic Host default configuration is designed to run as a single-node kubernetes master/node. To cluster them together we alter a few files on each host. This will be done with an Ansible Playbook for our demonstration. This playbook is far from optimized. It has been left with most values hard-coded so new users can more easily see how it is doing work. They can then take that knowledge and improve on the initial design.
+
+`dnf install ansible` was the only requirement on my laptop that I am aware of.
+
+==== Defining Kubernetes Hosts on the Ansible Server
+
+[source,bash]
+.edit or create /etc/ansible/hosts on your Ansible Server
+----
+[kube-masters]
+kube0.example.com
+
+[kube-nodes]
+kube1.example.com
+kube2.example.com
+----
+
+[source,bash]
+.ensure these hostnames are either controlled by DNS or are in /etc/hosts for your Ansible server
+----
+jduncan@dhcp-192-168-1-140 ~$ cat /etc/hosts
+127.0.0.1		localhost.localdomain localhost
+::1		localhost6.localdomain6 localhost6
+...
+192.168.122.210	kube0.example.com
+192.168.122.211	kube1.example.com
+192.168.122.212	kube2.example.com
+----
+
+==== Deploying Kubernetes via Ansible
+
+The Ansible Playbooks, along with this Agenda in raw asciidoc, are available on link:https://github.com/jduncan-rva/containers_demo[GitHub] for continued exploration.
+
+[source,bash]
+.deploy our playbook.
+----
+jduncan@dhcp-192-168-1-140 uscbp_containers$ ansible-playbook kube_3_node_demo.yaml
+----
+
+[TIP]
+This will take a few minutes and produce a LOT of STDOUT. In the end, green and yellow is good, and red is bad. Any errors should be straight-forward.
+
+[IMPORTANT]
+Make sure each host is reachable via ssh-key from the Ansible server.
+
+=== Creating a Container Registry
 
 [IMPORTANT]
 Atomic Enterprise Platform, as well as OpenShift Enterprise, have an integrated Secure Registry component. Satellite 6 can also act as a container registry and integrate into workflows. For this demo we will be using a simple upstream registry from Docker Hub.
