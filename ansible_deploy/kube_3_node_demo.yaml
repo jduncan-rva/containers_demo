@@ -19,7 +19,7 @@
     service: name=kube-controller-manager state=restarted enabled=yes
   - name: restart and enable kube-scheduler on master
     service: name=kube-scheduler state=restarted enabled=yes
-  - name: get flannel-config.json on master
+  - name: create flannel-config.json on master
     template: src=templates/flannel-config.json dest=/root/flannel-config.json
   - name: set flannel config in etcd database on master
     command: curl -L http://kube0.example.com:2379/v2/keys/coreos.com/network/config -XPUT --data-urlencode value@/root/flannel-config.json
@@ -27,6 +27,12 @@
     template: src=templates/sysconfig_flanneld.j2 dest=/etc/sysconfig/flanneld
   - name: restart and enable flanneld
     service: name=flanneld state=restarted enabled=yes
+  - name: create kubernetes template for registry service
+    template: src=templates/regsitry-service.yaml dest=/root/registry-service.yaml
+  - name: create kubernetes template for registry replication controller
+    template: src=templates/registry-controller.yaml dest=/root/registry-controller.yaml
+  - name: create kubernetes template for registry replication controller with nfs
+    template: src=templates/registry-controller-nfs.yaml dest=/root/registry-controller-nfs.yaml
 
 - hosts: kube-nodes
   remote_user: root

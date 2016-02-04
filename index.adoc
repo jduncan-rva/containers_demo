@@ -318,8 +318,12 @@ jduncan@dhcp-192-168-1-140 ~$ sudo docker tag docker.io/jeduncan/soscleaner kube
 jduncan@dhcp-192-168-1-140 ~$ sudo docker push kube1.example.com:5000/soscleaner
 ----
 
-[IMPORTANT]
+==== Stateless as a Practical Solution
+
 What happens if you replace the pod for any reason with this configuration?
+
+[source,bash]
+.make kubernetes restart the pod
 
 ==== Persistent Storage
 

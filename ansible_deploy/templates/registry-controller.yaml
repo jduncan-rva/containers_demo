@@ -17,7 +17,7 @@ spec:
       - name: registry
         image: docker.io/registry:2
         volumeMounts:
-        - mountPath: "/var/certs"
+        - mountPath: "/var/certs:z"
           name: certdir
         env:
           - name: REGISTRY_HTTP_TLS_CERTIFICATE
