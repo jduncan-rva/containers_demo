@@ -61,3 +61,5 @@
     template: src=/template/certs/domain.crt dest=/var/certs/domain.crt
   - name: add the registry key to /var/certs
     template: src=src=/template/certs/domain.key dest=/var/certs/domain.key
+  - name: set selnux boolean to allow pods to use nfs
+    command: /usr/sbin/setsebool -P virt_use_nfs 1

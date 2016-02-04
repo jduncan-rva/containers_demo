@@ -159,7 +159,7 @@ jduncan@dhcp-192-168-1-140 uscbp_containers$ ansible-playbook kube_3_node_demo.y
 This will take a few minutes and produce a LOT of STDOUT. In the end, green and yellow is good, and red is bad. Any errors should be straight-forward.
 
 [IMPORTANT]
-Make sure each host is reachable via ssh-key from the Ansible server.
+Make sure each host is reachable via ssh-key from the Ansible server before attempting a deployment.
 
 === Creating a Container Registry
 
@@ -273,7 +273,7 @@ spec:
       - name: registry
         image: docker.io/registry:2
         volumeMounts:
-        - mountPath: "/var/certs:z"
+        - mountPath: "/var/certs:z" # <1>
           name: certdir
         env:
           - name: REGISTRY_HTTP_TLS_CERTIFICATE
@@ -288,6 +288,7 @@ spec:
           hostPath:
             path: "/var/certs"
 ----
+<1> The :z flag handles all of the SELinux magic between the host and the container
 
 [source,bash]
 .create the registry replication controller
@@ -307,3 +308,21 @@ registry-controller-m4wwq   1/1       Running   0          4m
 ----
 
 ==== Access the Registry
+
+At this point, we should be able to push an image into our registry from any host that has the CA's certificate installed
+
+[source,bash]
+.push an image into our new registry
+----
+jduncan@dhcp-192-168-1-140 ~$ sudo docker tag docker.io/jeduncan/soscleaner kube1.example.com:5000/soscleaner
+jduncan@dhcp-192-168-1-140 ~$ sudo docker push kube1.example.com:5000/soscleaner
+----
+
+[IMPORTANT]
+What happens if you replace the pod for any reason with this configuration?
+
+==== Persistent Storage
+
+
+
+==== Adding Persistent Storage with High Availability
