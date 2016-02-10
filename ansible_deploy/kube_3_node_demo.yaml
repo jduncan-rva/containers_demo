@@ -1,3 +1,20 @@
+- hosts: all
+  vars_files:
+    - passes.yml
+  remote_user: root
+  tasks:
+  - redhat_subscription: state=present username=rhn-support-jduncan password={{ rhn_pass }} autosubscribe=true
+  - name: Check for an Atomic Host upgrade
+    command: atomic host upgrade
+  - name: reboot each box
+    shell: sleep 2 && systemctl reboot
+    async: 1
+    poll: 0
+    ignore_errors: true
+  - name: wait for server to come back
+    local_action: wait_for host={{ inventory_hostname }} state=started delay=30 timeout=300 port=22
+    sudo: false
+
 - hosts: kube-masters
   remote_user: root
   tasks:
@@ -28,7 +45,7 @@
   - name: restart and enable flanneld
     service: name=flanneld state=restarted enabled=yes
   - name: create kubernetes template for registry service
-    template: src=templates/regsitry-service.yaml dest=/root/registry-service.yaml
+    template: src=templates/registry-service.yaml dest=/root/registry-service.yaml
   - name: create kubernetes template for registry replication controller
     template: src=templates/registry-controller.yaml dest=/root/registry-controller.yaml
   - name: create kubernetes template for registry replication controller with nfs
@@ -60,12 +77,30 @@
   - name: create the certificate directory for each node
     file: path=/etc/docker/certs.d/kube1.example.com:5000 state=directory
   - name: add the registry certificate for docker
-    template: src=/template/certs/domain.crt dest=/etc/docker/certs.d/kube1.example.com:5000/ca.crt
+    template: src=templates/certs/domain.crt dest=/etc/docker/certs.d/kube1.example.com:5000/ca.crt
   - name: create the certs directory to mount into the registry container
-    file: path=/var/certs path=directory
+    file: path=/var/certs state=directory
   - name: add the registry cert to /var/certs
-    template: src=/template/certs/domain.crt dest=/var/certs/domain.crt
+    template: src=templates/certs/domain.crt dest=/var/certs/domain.crt
   - name: add the registry key to /var/certs
-    template: src=src=/template/certs/domain.key dest=/var/certs/domain.key
+    template: src=templates/certs/domain.key dest=/var/certs/domain.key
   - name: set selnux boolean to allow pods to use nfs
     command: /usr/sbin/setsebool -P virt_use_nfs 1
+
+- hosts: all
+  remote_user: root
+  tasks:
+    - name: reboot each box
+      shell: sleep 2 && systemctl reboot
+      async: 1
+      poll: 0
+      ignore_errors: true
+    - name: wait for server to come back
+      local_action: wait_for host={{ inventory_hostname }} state=started delay=30 timeout=300 port=22
+      sudo: false
+
+- hosts: kube-nodes
+  remote_user: root
+  tasks:
+    - name: pull registry v2 docker image
+      command: docker pull docker.io/registry:2

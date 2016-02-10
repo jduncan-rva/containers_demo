@@ -45,8 +45,6 @@ These settings can be overwritten when creating a container as such:
 `docker run -d --ulimit nproc=2048:4096 httpd`
 ____
 
-== Latest Version of RHEL Atomic Host
-
 === Release Notes
 
 link:https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/7.2_Release_Notes/atomic_host_and_containers.html[RHEL 7.2 Atomic Host Release Notes]
@@ -92,7 +90,7 @@ The default partitioning dedicates most of the available space for the container
 
 === Replication Controller
 
-== Kubernetes Labs
+== Kubernetes Lab
 
 === Lab Topology
 We will be using 3 kvm virtual machines on my laptop for today's demonstrations.
@@ -101,7 +99,7 @@ We will be using 3 kvm virtual machines on my laptop for today's demonstrations.
 |===
 |Server Name|IP|Notes|CPUS|RAM|Disk
 
-|laptop|192.168.122.1|Ansible Server/Hypervisor|8 Cores|16GB|256GB SSD
+|laptop|192.168.122.1|Ansible Server/Hypervisor/NFS Server|8 Cores|16GB|256GB SSD
 
 |kube0.example.com|192.168.122.210|Kubernetes Master|2 VCPU|4GB|40GB
 
@@ -114,6 +112,39 @@ We will be using 3 kvm virtual machines on my laptop for today's demonstrations.
 === Kubernetes Cluster Systems
 
 All three nodes are RHEL Atomic Hosts, registered and updated with the latest release of the Operating System.
+
+[source,bash]
+.register each node
+----
+-bash-4.2# subscription-manager register --auto-attach --username=rhn-support-jduncan
+----
+
+[source,bash]
+.update each node to the latest available RHEL Atomic Image
+----
+-bash-4.2# atomic host upgrade
+Updating from: rhel-atomic-host-ostree:rhel-atomic-host/7/x86_64/standard
+...
+----
+
+[source,bash]
+.reboot each node to boot into the new image
+----
+-bash-4.2# systemctl reboot
+----
+
+=== NFS Server
+
+In this demo, my laptop will be acting as a simple NFS server for the containers to use for persistent and shared storage
+
+[source,bash]
+. nfs exports for demo
+----
+jduncan@dhcp-192-168-1-140 ~$ showmount -e 192.168.122.1
+Export list for 192.168.122.1:
+/var/registry-data 192.168.122.0/24
+/var/certs         192.168.122.0/24
+----
 
 === Deploying Kubernetes with Ansible
 
