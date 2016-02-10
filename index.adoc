@@ -140,7 +140,7 @@ In this demo, my laptop will be acting as a simple NFS server for the containers
 [source,bash]
 . nfs exports for demo
 ----
-jduncan@dhcp-192-168-1-140 ~$ showmount -e 192.168.122.1
+~$ showmount -e 192.168.122.1
 Export list for 192.168.122.1:
 /var/registry-data 192.168.122.0/24
 /var/certs         192.168.122.0/24
@@ -168,7 +168,7 @@ kube2.example.com
 [source,bash]
 .ensure these hostnames are either controlled by DNS or are in /etc/hosts for your Ansible server
 ----
-jduncan@dhcp-192-168-1-140 ~$ cat /etc/hosts
+~$ cat /etc/hosts
 127.0.0.1		localhost.localdomain localhost
 ::1		localhost6.localdomain6 localhost6
 ...
@@ -184,7 +184,7 @@ The Ansible Playbooks, along with this Agenda in raw asciidoc, are available on 
 [source,bash]
 .deploy our playbook.
 ----
-jduncan@dhcp-192-168-1-140 uscbp_containers$ ansible-playbook kube_3_node_demo.yaml
+~$ ansible-playbook kube_3_node_demo.yaml
 ----
 
 This will take a few minutes and produce a LOT of STDOUT. In the end, green and yellow is good, and red is bad. Any errors should be straight-forward.
@@ -216,7 +216,7 @@ For the docker-registry application, if you want to move containers from one hos
 [source,bash]
 .create a self-signed certificate on your system
 ----
-jduncan@dhcp-192-168-1-140 ~$ mkdir -p certs && openssl req \
+~$ mkdir -p certs && openssl req \
   -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
   -x509 -days 365 -out certs/domain.crtmkdir -p certs && openssl req \
   -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
@@ -348,22 +348,198 @@ At this point, we should be able to push an image into our registry from any hos
 [source,bash]
 .push an image into our new registry
 ----
-jduncan@dhcp-192-168-1-140 ~$ sudo docker tag docker.io/jeduncan/soscleaner kube1.example.com:5000/soscleaner
-jduncan@dhcp-192-168-1-140 ~$ sudo docker push kube1.example.com:5000/soscleaner
+~$ sudo docker tag docker.io/jeduncan/soscleaner kube1.example.com:5000/soscleaner
+~$ sudo docker push kube1.example.com:5000/soscleaner
+----
+
+[source,bash]
+.confirm that we have pushed the image up
+----
+~$ curl --insecure https://kube1.example.com:5000/v2/_catalog
+{"repositories":["soscleaner"]}
 ----
 
 ==== Stateless without Persistent Storage
 
 What happens if you replace the pod for any reason with this configuration?
 
+===== Make Kubernetes Restart the Pod
+
 [source,bash]
-.make kubernetes restart the pod
+.find the current container
+----
+-bash-4.2# docker ps
+CONTAINER ID        IMAGE                                  COMMAND                  CREATED              STATUS              PORTS               NAMES
+2b2672902ded        docker.io/registry:2                   "/bin/registry /etc/d"   10 seconds ago       Up 8 seconds                            k8s_registry.aa845cc4_registry-rc-8612o_default_b12a6f88-d03d-11e5-81d9-525400a7840e_3787984f
+92436e44ef56        gcr.io/google_containers/pause:0.8.0   "/pause"                 About a minute ago   Up About a minute                       k8s_POD.64debde_registry-rc-8612o_default_b12a6f88-d03d-11e5-81d9-525400a7840e_ccaeb605
 ----
 
+[source,bash]
+.remove the current container
+-bash-4.2# docker rm -f 2b2672902ded
+2b2672902ded
 ----
 
-==== Persistent Storage
+[source,bash]
+.confirm that a new container was created for the pod
+----
+-bash-4.2# docker ps
+CONTAINER ID        IMAGE                                  COMMAND                  CREATED              STATUS              PORTS               NAMES
+15474080fcc8        docker.io/registry:2                   "/bin/registry /etc/d"   About a minute ago   Up About a minute                       k8s_registry.aa845cc4_registry-rc-8612o_default_b12a6f88-d03d-11e5-81d9-525400a7840e_7317d54a
+92436e44ef56        gcr.io/google_containers/pause:0.8.0   "/pause"                 3 minutes ago        Up 3 minutes                            k8s_POD.64debde_registry-rc-8612o_default_b12a6f88-d03d-11e5-81d9-525400a7840e_ccaeb605
+----
 
+[source,bash]
+.look for our uploaded container image again
+----
+~$ curl --insecure https://kube1.example.com:5000/v2/_catalog
+{"repositories":[]}
 
+----
 
 ==== Adding Persistent Storage with High Availability
+
+Like we just saw, containers are considered 'ephemeral'. When a container is replaced for any reason, it is replaced, not recovered.
+
+[TIP]
+The data is (necessarily) gone. The ephemeral filesystem is still on the host(s) it was running on before it was removed/stopped responding/$whatever. So you can run diagnostics and run forensics. But building that into your workflow is not the goal here.
+
+To provide persistent storage, we will create a new replication controller that uses NFS for container registry storage.
+
+[source,bash]
+. our new controller
+----
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: registry-rc
+  labels:
+    name: registry-rc
+spec:
+  replicas: 1
+  selector:
+    name: registry
+  template:
+    metadata:
+      labels:
+        name: registry
+    spec:
+      containers:
+      - name: registry
+        image: docker.io/registry:2
+        volumeMounts:
+        - mountPath: "/var/certs"
+          name: certdir
+        - mountPath: "/var/lib/registry/docker"
+          name: registrydir
+        env:
+          - name: REGISTRY_HTTP_TLS_CERTIFICATE
+            value: /var/certs/domain.crt
+          - name: REGISTRY_HTTP_TLS_KEY
+            value: /var/certs/domain.key
+        ports:
+          - name: reg-port
+            containerPort: 5000
+      volumes:
+        - name: certdir
+          nfs:
+            path: "/var/certs"
+            server: 192.168.122.1
+            readOnly: True
+        - name: registrydir
+          nfs:
+            path: "/var/registry-data"
+            server: 192.168.122.1
+----
+
+[source,bash]
+.we remove the old replication controller
+----
+-bash-4.2# kubectl delete rc registry-rc
+----
+
+[source,bash]
+.and create our new one with our nfs-based config
+----
+-bash-4.2# kubectl create -f registry-controller-nfs.yaml
+----
+
+[source,bash]
+.confirm our new rc is created
+----
+-bash-4.2# kubectl get pods
+NAME                READY     STATUS    RESTARTS   AGE
+registry-rc-13zln   1/1       Running   0          39s
+----
+
+===== Re-uploading our image
+
+[source,bash]
+.we upload our container image ... again
+----
+~$ sudo docker push kube1.example.com:5000/soscleaner
+The push refers to a repository [kube1.example.com:5000/soscleaner] (len: 1)
+...
+latest: digest: sha256:00fc342d4a42352d2349045f144555f0e0ed30c81d8e27ada1af5c71238e02d1 size: 15829
+----
+
+[source,bash]
+.blow away our container again
+----
+-bash-4.2# kubectl delete rc registry-rc
+replicationcontrollers/registry-rc
+----
+
+[source,bash]
+.confirm there are no pods up and running
+----
+-bash-4.2# kubectl get pods
+NAME      READY     STATUS    RESTARTS   AGE
+----
+
+[source,bash]
+.re-create our nfs replication controller
+----
+-bash-4.2# kubectl create -f registry-controller-nfs.yaml
+replicationcontrollers/registry-rc
+----
+
+[source,bash]
+.confirm that it is up and running
+----
+-bash-4.2# kubectl get pods
+NAME                READY     STATUS    RESTARTS   AGE
+registry-rc-f21ku   1/1       Running   0          45s
+----
+
+[source,bash]
+.look to see if we still have our container image available
+----
+jduncan@dhcp-192-168-1-140 uscbp_containers$ curl --insecure https://kube1.example.com:5000/v2/_catalog
+{"repositories":["soscleaner"]}
+----
+
+[source,bash]
+.pull it down to another host
+----
+-bash-4.2# docker pull kube1.example.com:5000/soscleaner
+Using default tag: latest
+Trying to pull repository kube1.example.com:5000/soscleaner ... latest: Pulling from soscleaner
+00a0c78eeb6d: Pull complete
+834629358fe2: Pull complete
+052ba2d31c49: Pull complete
+c89867de8092: Pull complete 
+361b059cb076: Pull complete
+c4c9372b59a3: Pull complete
+84587fefdc90: Pull complete
+e98320e5d16a: Pull complete
+511136ea3c5a: Already exists
+Digest: sha256:00fc342d4a42352d2349045f144555f0e0ed30c81d8e27ada1af5c71238e02d1
+Status: Downloaded newer image for kube1.example.com:5000/soscleaner:latest
+
+-bash-4.2# docker images
+REPOSITORY                          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+docker.io/registry                  2                   cc4e7e4415c5        6 days ago          165.6 MB
+kube1.example.com:5000/soscleaner   latest              e98320e5d16a        10 months ago       256.6 MB
+gcr.io/google_containers/pause      0.8.0               2c40b0526b63        10 months ago       241.7 kB
+----
