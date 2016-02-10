@@ -106,7 +106,7 @@ This allows you to deploy a service unit that is aware of all of the backend con
 
 A replication controller is a framework for defining pods that are meant to be horizontally scaled. The work unit is, in essence, a nested unit. A template is provided, which is basically a complete pod definition. This is wrapped with additional details about the replication work that should be done.
 
-== Kubernetes Lab
+== Kubernetes Workshop
 
 === Lab Topology
 We will be using 3 kvm virtual machines on my laptop for today's demonstrations.
@@ -168,7 +168,7 @@ The Atomic Host default configuration is designed to run as a single-node kubern
 
 `dnf install ansible` was the only requirement on my laptop that I am aware of.
 
-==== Defining Kubernetes Hosts on the Ansible Server
+==== Kubernetes Hosts on the Ansible Server
 
 [source,bash]
 .edit or create /etc/ansible/hosts on your Ansible Server
@@ -193,7 +193,7 @@ kube2.example.com
 192.168.122.212	kube2.example.com
 ----
 
-==== Deploying Kubernetes via Ansible
+==== Ansible Playbook
 
 The Ansible Playbooks, along with this Agenda in raw asciidoc, are available on link:https://github.com/jduncan-rva/containers_demo[GitHub] for continued exploration.
 
