@@ -242,7 +242,7 @@ For this example we are going to use /var/certs on each host to present the cert
 
 This deploy work has already been done by our Ansible playbook.
 
-==== Create a kubernetes Pod for the registry
+=== Create a kubernetes Service for the registry
 
 [source,bash]
 .create registry-service.yaml on the master
@@ -359,11 +359,11 @@ At this point, we should be able to push an image into our registry from any hos
 {"repositories":["soscleaner"]}
 ----
 
-==== Stateless without Persistent Storage
+=== Stateless Containers without Persistent Storage
 
 What happens if you replace the pod for any reason with this configuration?
 
-===== Make Kubernetes Restart the Pod
+==== Make Kubernetes Restart the Pod
 
 [source,bash]
 .find the current container
@@ -394,10 +394,11 @@ CONTAINER ID        IMAGE                                  COMMAND              
 ----
 ~$ curl --insecure https://kube1.example.com:5000/v2/_catalog
 {"repositories":[]}
-
 ----
 
-==== Adding Persistent Storage with High Availability
+Uh-Oh...
+
+=== Adding Persistent Storage with High Availability
 
 Like we just saw, containers are considered 'ephemeral'. When a container is replaced for any reason, it is replaced, not recovered.
 
@@ -472,7 +473,7 @@ NAME                READY     STATUS    RESTARTS   AGE
 registry-rc-13zln   1/1       Running   0          39s
 ----
 
-===== Re-uploading our image
+==== Re-uploading our image
 
 [source,bash]
 .we upload our container image ... again
@@ -528,7 +529,7 @@ Trying to pull repository kube1.example.com:5000/soscleaner ... latest: Pulling 
 00a0c78eeb6d: Pull complete
 834629358fe2: Pull complete
 052ba2d31c49: Pull complete
-c89867de8092: Pull complete 
+c89867de8092: Pull complete
 361b059cb076: Pull complete
 c4c9372b59a3: Pull complete
 84587fefdc90: Pull complete
