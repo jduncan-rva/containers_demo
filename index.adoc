@@ -82,13 +82,29 @@ The default partitioning dedicates most of the available space for the container
 
 === Master
 
+The kubernetes master is the server that runs link:https://coreos.com/etcd/[etcd] and the kubernetes scheduler, manager, and api services.
+
+While the master can also run docker and house pods, in a production environment it not the norm.
+
 === Node
+
+A kubernetes node runs docker, along with the kubelet and kube-proxy services.
+
+The nodes are where the actual work is done.
 
 === Pod
 
+A pod is the basic unit that Kubernetes deals with. Containers themselves are not assigned to hosts. Instead, closely related containers are grouped together in a pod. A pod generally represents one or more containers that should be controlled as a single "application".
+
 === Service
 
+ A service is a unit that acts as a basic load balancer and ambassador for other containers.
+
+This allows you to deploy a service unit that is aware of all of the backend containers to pass traffic to. External applications only need to worry about a single access point, but benefit from a scalable backend or at least a backend that can be swapped out when necessary.
+
 === Replication Controller
+
+A replication controller is a framework for defining pods that are meant to be horizontally scaled. The work unit is, in essence, a nested unit. A template is provided, which is basically a complete pod definition. This is wrapped with additional details about the replication work that should be done.
 
 == Kubernetes Lab
 
