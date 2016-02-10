@@ -98,7 +98,7 @@ A pod is the basic unit that Kubernetes deals with. Containers themselves are no
 
 === Service
 
- A service is a unit that acts as a basic load balancer and ambassador for other containers.
+A service is a unit that acts as a basic load balancer and ambassador for other containers.
 
 This allows you to deploy a service unit that is aware of all of the backend containers to pass traffic to. External applications only need to worry about a single access point, but benefit from a scalable backend or at least a backend that can be swapped out when necessary.
 
