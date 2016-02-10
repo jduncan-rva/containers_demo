@@ -1,4 +1,7 @@
 - hosts: all
+  # This included vars_files (passes.yml) need to contain a variable named 'rhn_pass' that is your RHN password for registration of the nodes
+  # It is HIGHLY recommended that you use ansible-vault to protect this data on your system.
+  # See http://docs.ansible.com/ansible/playbooks_vault.html for more information.
   vars_files:
     - passes.yml
   remote_user: root
@@ -16,6 +19,8 @@
     sudo: false
 
 - hosts: kube-masters
+  vars_files:
+  - vars.yml
   remote_user: root
   tasks:
   - name: configure /etc/resolv.conf
@@ -52,6 +57,8 @@
     template: src=templates/registry-controller-nfs.yaml dest=/root/registry-controller-nfs.yaml
 
 - hosts: kube-nodes
+  vars_files:
+  - vars.yml
   remote_user: root
   tasks:
   - name: configure /etc/resolv.conf
@@ -104,3 +111,18 @@
   tasks:
     - name: pull registry v2 docker image
       command: docker pull docker.io/registry:2
+
+- hosts: kube-masters
+  remote_user: root
+  vars_files:
+  - vars.yml
+  tasks:
+    - name: create a kubernetes service for the registry
+      command: kubectl create -f /root/registry-service.yaml
+      when: provision_demo
+    - name: create an nfs-based replication controller
+      command: kubectl create -f /root/registry-controller-nfs.yaml
+      when: provision_demo and provision_with_nfs
+    - name: create a local-storage based replication controller
+      command: kubectl create -f /root/registry-controller.yaml
+      when: provision_demo and not provision_with_nfs

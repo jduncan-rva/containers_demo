@@ -6,12 +6,13 @@ metadata:
   name: registry-service
   namespace: default
 spec:
+  type: NodePort
   ports:
   - name: web-registry
-  - protocol: TCP
-  - port: 5000
-  - targetPort: 5000
+    protocol: TCP
+    port: 5000
+    targetPort: 5000
   selector:
     name: registry
 deprecatedPublicIPs:
-  - 192.168.122.211
+  - {{ kube_node1.ip }}

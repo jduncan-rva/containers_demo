@@ -206,6 +206,9 @@ Atomic Enterprise Platform, as well as OpenShift Enterprise, have an integrated 
 Status: Downloaded newer image for docker.io/registry:2
 ----
 
+[TIP]
+If you do not do this now, your deploys will still work. Kubernetes will just tell docker to pull the image as needed on the nodes as it creates the pods. This 'priming the pump' will just save time and a little confusion down the road.
+
 ==== TLS Setup
 
 For the docker-registry application, if you want to move containers from one host to another, you have to use TLS. This requires a little set up on the kubernetes nodes as well as my laptop (if I want to push images from there as well). For this example, we'll be using a self-signed certificate.
@@ -349,12 +352,15 @@ jduncan@dhcp-192-168-1-140 ~$ sudo docker tag docker.io/jeduncan/soscleaner kube
 jduncan@dhcp-192-168-1-140 ~$ sudo docker push kube1.example.com:5000/soscleaner
 ----
 
-==== Stateless as a Practical Solution
+==== Stateless without Persistent Storage
 
 What happens if you replace the pod for any reason with this configuration?
 
 [source,bash]
 .make kubernetes restart the pod
+----
+
+----
 
 ==== Persistent Storage
 

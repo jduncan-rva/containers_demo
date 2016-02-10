@@ -1,0 +1,25 @@
+# Variables for Atomic Host Kubernetes Demo Configuration
+# This is currently designed to be a 3-node cluster. 1 master and 2 nodes
+# Each of the nodes are defined below. Please edit them to suit your environments
+
+kube_master: { hostname: "kube0.example.com", ip: "192.168.122.210" }
+kube_node1: { hostname: "kube1.example.com", ip: "192.168.122.211" }
+kube_node2: { hostname: "kube2.example.com", ip: "192.168.122.212" }
+
+# Additional Variables
+
+# the nfs server is used for the nfs mounts to demonstrate persistent storage.
+# this playbook currently does no configuration of the nfs server.
+# it only references it
+nfs_server: { hostname: nfs.example.com", ip: "192.168.122.1"}
+
+# This is the port number you want the registry demo to be served from
+registry_port: "5000"
+
+# The number of replicas to spin up for the registry Demo
+registry_replicas: "1"
+
+# whether or not to provision the demo service and rc
+# and whether or not to use nfs
+provision_demo : true
+provision_with_nfs: true

@@ -1,6 +1,5 @@
 127.0.0.1       localhost.localdomain localhost
 ::1     localhost6.localdomain6 localhost6
-192.168.122.210     kube0.example.com
-192.168.122.211     kube1.example.com
-192.168.122.211     registry.example.com
-192.168.122.212     kube2.example.com
+{{ kube_master.ip }}  {{ kube_master.hostname }}
+{{ kube_node1.ip }}   {{ kube_node1.hostname }}
+{{ kube_node2.ip }}   {{ kube_node2.hostname }}

@@ -1,5 +1,4 @@
 KUBELET_ADDRESS="--address=0.0.0.0"
 KUBELET_HOSTNAME=""
-KUBELET_API_SERVER="--api_servers=http://kube0.example.com:8080"
+KUBELET_API_SERVER="--api_servers=http://{{ kube_master.hostname }}:8080"
 KUBELET_ARGS="--register-node=true"
-

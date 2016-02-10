@@ -5,7 +5,7 @@ metadata:
   labels:
     name: registry-rc
 spec:
-  replicas: 2
+  replicas: {{ registry_replicas }}
   selector:
     name: registry
   template:
@@ -28,14 +28,14 @@ spec:
             value: /var/certs/domain.key
         ports:
           - name: reg-port
-            containerPort: 5000
+            containerPort: {{ registry_port }}
       volumes:
         - name: certdir
           nfs:
             path: "/var/certs"
-            server: 192.168.122.1
+            server: {{ nfs_server.ip }}
             readOnly: True
         - name: registrydir
           nfs:
             path: "/var/registry-data"
-            server: 192.168.122.1 
+            server: {{ nfs_server.ip }}
