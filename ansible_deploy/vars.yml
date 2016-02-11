@@ -18,6 +18,7 @@ registry_port: "5000"
 
 # The number of replicas to spin up for the registry Demo
 registry_replicas: "1"
+nfs_registry_replicas: "2"
 
 # whether or not to provision the demo service and rc
 # and whether or not to use nfs

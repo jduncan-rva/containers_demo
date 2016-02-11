@@ -5,7 +5,7 @@ metadata:
   labels:
     name: registry-rc
 spec:
-  replicas: {{ registry_replicas }}
+  replicas: {{ nfs_registry_replicas }}
   selector:
     name: registry
   template:

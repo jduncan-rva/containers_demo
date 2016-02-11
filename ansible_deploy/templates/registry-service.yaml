@@ -6,12 +6,13 @@ metadata:
   name: registry-service
   namespace: default
 spec:
+  sessionAffinity: ClientIP
   type: NodePort
   ports:
   - name: web-registry
     protocol: TCP
-    port: 5000
-    targetPort: 5000
+    port: {{ registry_port }}
+    targetPort: {{ registry_port }}
   selector:
     name: registry
   deprecatedPublicIPs:

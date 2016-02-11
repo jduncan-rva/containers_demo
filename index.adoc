@@ -271,19 +271,31 @@ metadata:
   name: registry-service
   namespace: default
 spec:
-  ports: [
-    { "name": "web-registry",
-      "protocol": "TCP",
-      "port": 5000,
-      "targetPort": 5000
-    }
-  ]
+  sessionAffinity: ClientIP
+  type: NodePort
+  ports:
+  - name: web-registry
+    protocol: TCP
+    port: 5000
+    targetPort: 5000
   selector:
     name: registry
   deprecatedPublicIPs:
   - 192.168.122.211
-  - 192.168.122.212
 ----
+
+[IMPORTANT]
+.NFS and the docker-registry image
+====
+There is a bug in how docker-registry handles nfs writes when multiple containers are in play. There are some mount options for the NFS server
+[source,bash]
+----
+/var/certs	192.168.122.0/24(rw,sync,no_root_squash,no_wdelay)
+/var/registry-data 192.168.122.0/24(rw,sync,no_root_squash,no_wdelay)
+----
+
+and the sessionAffinity option for the service definition above to help mitigate this. However, it is not fool-proof. There is still some debate (the issue deals with how the registry code confirms that a layer has been written and client side caching in NFS makes this harder) but it may be affected by iSCSI as well.
+====
 
 [source,bash]
 .create the registry service
@@ -436,7 +448,7 @@ metadata:
   labels:
     name: registry-rc
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     name: registry
   template:
