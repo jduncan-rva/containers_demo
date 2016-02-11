@@ -21,5 +21,5 @@ registry_replicas: "1"
 
 # whether or not to provision the demo service and rc
 # and whether or not to use nfs
-provision_demo : true
-provision_with_nfs: true
+provision_demo : false
+provision_with_nfs: false

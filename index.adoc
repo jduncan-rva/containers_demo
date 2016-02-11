@@ -9,7 +9,7 @@
 :docinfo1:
 
 = USCBP Container Workshop
-Jamie Duncan <jduncan@redhat.com>; Tariq Islam <tislam@redhat.com>
+Jamie Duncan <jduncan@redhat.com>
 
 == Container Key Concepts
 
@@ -164,9 +164,9 @@ Export list for 192.168.122.1:
 
 === Deploying Kubernetes with Ansible
 
-The Atomic Host default configuration is designed to run as a single-node kubernetes master/node. To cluster them together we alter a few files on each host. This will be done with an Ansible Playbook for our demonstration. This playbook is far from optimized. It has been left with most values hard-coded so new users can more easily see how it is doing work. They can then take that knowledge and improve on the initial design.
+The Atomic Host default configuration is designed to run as a single-node kubernetes master/node. To cluster them together we alter a few files on each host. This will be done with an Ansible Playbook for our demonstration. This playbook is far from optimized. It has been created with a very simple, linear structure so new users can more easily see how it is doing work. They can then take that knowledge and improve on the initial design like introducing roles, making the playbook handle an arbitrary number of nodes, including provisioning setup, etc.
 
-`dnf install ansible` was the only requirement on my laptop that I am aware of.
+`dnf install ansible` was the only requirement on the ansible server.
 
 ==== Kubernetes Hosts on the Ansible Server
 
@@ -356,6 +356,9 @@ registry-controller   registry       registry:2   name=registry   1
 NAME                        READY     STATUS    RESTARTS   AGE
 registry-controller-m4wwq   1/1       Running   0          4m
 ----
+
+[TIP]
+In the provided playbook, if you set `provision_demo` to `true` ansible will create the demo service and replication controller we just did above. If you additionally set `provision_with_nfs` to `true` it will set up the replication controller with nfs mounts from the nfs server for the TLS certificate and as shared storage for the docker registry.
 
 ==== Access the Registry
 
