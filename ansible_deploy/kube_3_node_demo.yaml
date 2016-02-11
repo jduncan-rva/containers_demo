@@ -6,7 +6,7 @@
     - passes.yml
   remote_user: root
   tasks:
-  - redhat_subscription: state=present username=rhn-support-jduncan password={{ rhn_pass }} autosubscribe=true
+  - redhat_subscription: state=present username={{ rhn_user }} password={{ rhn_pass }} autosubscribe=true
   - name: Check for an Atomic Host upgrade
     command: atomic host upgrade
   - name: reboot each box
