@@ -244,8 +244,6 @@ For the docker-registry application, if you want to move containers from one hos
 ----
 ~$ mkdir -p certs && openssl req \
   -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
-  -x509 -days 365 -out certs/domain.crtmkdir -p certs && openssl req \
-  -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
   -x509 -days 365 -out certs/domain.crt
 ----
 
