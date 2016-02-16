@@ -17,7 +17,9 @@ Jamie Duncan <jduncan@redhat.com>
 
 link:http://redhat.slides.com/jduncan/uscbp-201602/fullscreen[Link to presentation on slides.com]
 
-== Container ulimit and cgroup defaults
+== Performance Tuning Questions
+
+=== Container ulimit and cgroup defaults
 
 As of RHEL Atomic Host 7.1.2, which rebased to docker 1.6.0, the following options are available
 
@@ -48,6 +50,10 @@ ____
 === Release Notes
 
 link:https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/7.2_Release_Notes/atomic_host_and_containers.html[RHEL 7.2 Atomic Host Release Notes]
+
+=== Performance Tuning Webinar
+
+link:http://www.twitter.com/jeremyeder gives an amazing talk on performance tuning methodologies for containers in an enterprise environment. A recent version of this talk can be found on link:https://www.redhat.com/en/about/videos/wicked-fast-container-based-apps[access.redhat.com]
 
 == Atomic Host Key Concepts
 
