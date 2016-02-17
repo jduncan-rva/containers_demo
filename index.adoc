@@ -15,7 +15,7 @@ Jamie Duncan <jduncan@redhat.com>
 
 === Presentation
 
-link:http://redhat.slides.com/jduncan/uscbp-201602/fullscreen[Link to presentation on slides.com]
+link:http://redhat.slides.com/jduncan/uscbp-201602/live#/[Link to presentation on slides.com]
 
 == Performance Tuning Questions
 
